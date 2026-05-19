@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bous — exploration API RATP / IDFM</title>
+    <link rel="stylesheet" href="./assets/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Projet Bous</p>
+          <h1>Où est mon 46 vers Gare de l'Est&nbsp;?</h1>
+          <p class="hero-copy">
+            Exploration technique concrète pour un MVP GitHub Pages :
+            choix d'API, contraintes frontend, mapping ligne 46 et prototype
+            live-ready.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <span class="badge badge-success">IDF Mobilités recommandé</span>
+          <span class="badge badge-warning">frontend direct officiel : non</span>
+          <a class="primary-link" href="https://sunix.github.io/bous">cible&nbsp;: sunix.github.io/bous</a>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="stack">
+          <article class="panel verdict">
+            <h2>Verdict MVP</h2>
+            <ul class="check-list">
+              <li><strong>API retenue :</strong> IDF Mobilités / PRIM</li>
+              <li><strong>Source RATP Open Data :</strong> non retenue pour le live vehicle tracking</li>
+              <li><strong>Architecture :</strong> GitHub Pages + proxy serverless + GTFS statique IDFM</li>
+              <li><strong>Refresh conseillé :</strong> 15 secondes</li>
+            </ul>
+          </article>
+
+          <article class="panel">
+            <h2>Comparatif APIs</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>API candidate</th>
+                    <th>Live vehicle</th>
+                    <th>Auth</th>
+                    <th>Frontend direct</th>
+                    <th>Ligne 46</th>
+                    <th>Direction</th>
+                    <th>Complexité</th>
+                  </tr>
+                </thead>
+                <tbody id="api-comparison"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h2>Mapping ligne 46</h2>
+            <div class="mapping-grid" id="identifier-grid"></div>
+            <div class="callout">
+              <strong>Mécanisme conseillé pour "Gare de l'Est"</strong>
+              <p>
+                filtrer la ligne 46, puis résoudre la destination via
+                <code>DestinationRef</code> / <code>trip_headsign</code> /
+                <code>direction_id</code>. C'est plus robuste qu'un simple
+                label brut.
+              </p>
+            </div>
+          </article>
+
+          <article class="panel">
+            <h2>Architecture minimale recommandée</h2>
+            <div class="architecture" id="architecture-cards"></div>
+          </article>
+        </section>
+
+        <section class="stack">
+          <article class="panel prototype-panel">
+            <div class="panel-heading">
+              <div>
+                <h2>Mini prototype</h2>
+                <p class="muted">
+                  Mode démo par défaut. Branchez un endpoint JSON proxy pour
+                  passer en mode live.
+                </p>
+              </div>
+              <span class="badge" id="mode-badge">mode démo</span>
+            </div>
+
+            <form class="feed-form" id="feed-form">
+              <label for="feed-url">Endpoint JSON proxy</label>
+              <div class="feed-input-row">
+                <input
+                  id="feed-url"
+                  name="feed-url"
+                  type="url"
+                  placeholder="https://example.com/api/bous/46-gare-est"
+                  autocomplete="off"
+                />
+                <button type="submit">Appliquer</button>
+                <button type="button" id="reset-feed">Démo</button>
+              </div>
+            </form>
+
+            <div class="status-row">
+              <span id="data-source">Source : démonstration locale</span>
+              <span id="refresh-rate">Refresh : 15 s</span>
+              <span id="proxy-note">Proxy officiel recommandé pour PRIM</span>
+            </div>
+
+            <div class="map-card">
+              <svg
+                id="map"
+                viewBox="0 0 800 560"
+                role="img"
+                aria-label="Carte schématique de Paris Est avec bus 46 vers Gare de l'Est"
+              >
+                <defs>
+                  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+                  </pattern>
+                </defs>
+                <rect x="0" y="0" width="800" height="560" fill="#0f172a"></rect>
+                <rect x="0" y="0" width="800" height="560" fill="url(#grid)"></rect>
+                <text x="38" y="58" class="map-title">Paris Est — vue schématique MVP</text>
+                <text x="38" y="90" class="map-subtitle">tracé approximatif en attendant l'import exact de shapes.txt</text>
+                <g id="route-layer"></g>
+                <g id="stop-layer"></g>
+                <g id="vehicle-layer"></g>
+              </svg>
+            </div>
+
+            <div class="proto-footer">
+              <div class="metric">
+                <span class="metric-label">Bus détectés</span>
+                <strong id="vehicle-count">0</strong>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Dernière MAJ</span>
+                <strong id="last-updated">—</strong>
+              </div>
+              <div class="metric">
+                <span class="metric-label">Sens affiché</span>
+                <strong id="active-direction">Gare de l'Est</strong>
+              </div>
+            </div>
+
+            <div class="vehicle-details" id="vehicle-details">
+              Cliquez sur un bus pour voir son détail.
+            </div>
+          </article>
+
+          <article class="panel">
+            <h2>Décision produit</h2>
+            <div class="decision-list" id="decisions"></div>
+          </article>
+
+          <article class="panel">
+            <h2>Étapes restantes pour passer en vrai live</h2>
+            <ol class="steps-list">
+              <li>Créer une clé PRIM</li>
+              <li>Confirmer le <code>route_id</code> exact de la ligne 46 dans <code>routes.txt</code></li>
+              <li>Résoudre le sens <strong>Gare de l'Est</strong> via <code>trips.txt</code> + <code>DestinationRef</code></li>
+              <li>Déployer un Worker cache 15 s</li>
+              <li>Pointer ce prototype vers le JSON normalisé du Worker</li>
+            </ol>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <script src="./assets/app.js"></script>
+  </body>
+</html>

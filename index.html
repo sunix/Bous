@@ -20,7 +20,7 @@
         </div>
         <div class="hero-actions">
           <span class="badge badge-success">IDF Mobilités recommandé</span>
-          <span class="badge badge-warning">frontend direct officiel : non</span>
+          <span class="badge badge-warning">CORS PRIM : oui / prod public : non</span>
           <a class="primary-link" href="https://sunix.github.io/bous">cible&nbsp;: sunix.github.io/bous</a>
         </div>
       </header>
@@ -46,6 +46,7 @@
                     <th>API candidate</th>
                     <th>Live vehicle</th>
                     <th>Auth</th>
+                    <th>CORS</th>
                     <th>Frontend direct</th>
                     <th>Ligne 46</th>
                     <th>Direction</th>
@@ -69,6 +70,11 @@
                 label brut.
               </p>
             </div>
+          </article>
+
+          <article class="panel">
+            <h2>Confirmations directes de cette passe</h2>
+            <div class="decision-list" id="verification-list"></div>
           </article>
 
           <article class="panel">
@@ -125,8 +131,8 @@
                 </defs>
                 <rect x="0" y="0" width="800" height="560" fill="#0f172a"></rect>
                 <rect x="0" y="0" width="800" height="560" fill="url(#grid)"></rect>
-                <text x="38" y="58" class="map-title">Paris Est — vue schématique MVP</text>
-                <text x="38" y="90" class="map-subtitle">tracé approximatif en attendant l'import exact de shapes.txt</text>
+                <text x="38" y="58" class="map-title">Paris Est — ligne 46 issue du GTFS IDFM</text>
+                <text x="38" y="90" class="map-subtitle">shape aller vérifié : Château de Vincennes -> Gare de l'Est</text>
                 <g id="route-layer"></g>
                 <g id="stop-layer"></g>
                 <g id="vehicle-layer"></g>
@@ -162,8 +168,9 @@
             <h2>Étapes restantes pour passer en vrai live</h2>
             <ol class="steps-list">
               <li>Créer une clé PRIM</li>
-              <li>Confirmer le <code>route_id</code> exact de la ligne 46 dans <code>routes.txt</code></li>
-              <li>Résoudre le sens <strong>Gare de l'Est</strong> via <code>trips.txt</code> + <code>DestinationRef</code></li>
+              <li>Lire le <code>LineRef</code> exact côté PRIM</li>
+              <li>Confirmer le <strong>DestinationRef</strong> du sens Gare de l'Est</li>
+              <li>Vérifier si PRIM livre du vrai GPS ou seulement du stop-based temps réel</li>
               <li>Déployer un Worker cache 15 s</li>
               <li>Pointer ce prototype vers le JSON normalisé du Worker</li>
             </ol>

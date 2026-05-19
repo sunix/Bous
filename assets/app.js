@@ -3,6 +3,7 @@ const apiCandidates = [
     name: 'RATP Open Data',
     live: 'NO',
     auth: 'aucun flux live bus confirmé',
+    cors: 'YES',
     frontend: 'NO',
     line46: 'NO',
     direction: 'NO',
@@ -10,9 +11,10 @@ const apiCandidates = [
   },
   {
     name: 'IDF Mobilités / PRIM',
-    live: 'YES',
+    live: 'temps réel oui / GPS à confirmer',
     auth: 'API key via header apiKey',
-    frontend: 'NO',
+    cors: 'YES',
+    frontend: 'techniquement oui',
     line46: 'YES',
     direction: 'YES',
     complexity: '7/10',
@@ -21,14 +23,19 @@ const apiCandidates = [
 
 const identifiers = [
   {
-    label: 'route_id GTFS probable',
-    value: 'IDFM:C01046',
-    status: 'inferred',
+    label: 'route_id GTFS exact',
+    value: 'IDFM:C01087',
+    status: 'confirmed',
   },
   {
-    label: 'LineRef SIRI probable',
-    value: 'RATP:Line::C01046:LOC',
-    status: 'inferred',
+    label: 'headsign + direction',
+    value: "Gare de l'Est / direction_id 0",
+    status: 'confirmed',
+  },
+  {
+    label: 'terminus aller',
+    value: "IDFM:492185 -> Gare de l'Est",
+    status: 'confirmed',
   },
   {
     label: 'famille opérateur',
@@ -36,16 +43,21 @@ const identifiers = [
     status: 'confirmed',
   },
   {
-    label: 'filtre direction fiable',
-    value: 'DestinationRef -> trip_headsign',
+    label: 'code route externe',
+    value: '100100046',
     status: 'confirmed',
+  },
+  {
+    label: 'LineRef live PRIM',
+    value: 'à confirmer avec une vraie réponse API',
+    status: 'inferred',
   },
 ];
 
 const architectureSteps = [
   {
     title: '1. GitHub Pages',
-    copy: 'frontend statique, UI carte, polling toutes les 15 secondes.',
+    copy: 'frontend statique, UI carte, possibilité technique de fetch navigateur car CORS PRIM est ouvert.',
   },
   {
     title: '2. Worker serverless',
@@ -60,7 +72,7 @@ const architectureSteps = [
 const productDecisions = [
   {
     title: 'Frontend only idéal : non',
-    copy: "La clé PRIM ne doit pas être exposée côté navigateur, même si un test CORS passait.",
+    copy: 'Les tests directs montrent que CORS passe, mais une clé PRIM publique dans GitHub Pages reste un mauvais choix produit.',
   },
   {
     title: 'Workaround minimal : oui',
@@ -72,56 +84,88 @@ const productDecisions = [
   },
 ];
 
+const verificationFindings = [
+  {
+    title: 'PRIM global query confirmé',
+    copy: "La doc officielle expose GET /estimated-timetable et l'endpoint réel répond bien 401 + www-authenticate: Key sans clé.",
+  },
+  {
+    title: 'CORS PRIM confirmé',
+    copy: 'Le préflight répond Access-Control-Allow-Origin: * et Access-Control-Allow-Headers: apiKey.',
+  },
+  {
+    title: 'Quotas confirmés',
+    copy: 'La doc PRIM affiche 5 req/s et 1000 req/jour pour les nouveaux comptes sur la global query.',
+  },
+  {
+    title: 'Mapping exact ligne 46',
+    copy: "Le GTFS IDFM confirme route_id IDFM:C01087, shape aller IDFM:shp_3_1053, terminus aller IDFM:492185 (Gare de l'Est).",
+  },
+  {
+    title: 'Point encore ouvert',
+    copy: 'Les pages API publiques confirment le temps réel stop-based ; le feed GPS brut par véhicule reste à confirmer avec une clé PRIM.',
+  },
+];
+
 const demoFeed = {
   source: 'demo-static',
   refreshSeconds: 15,
   line: {
     label: '46',
     direction: "Gare de l'Est",
-    routeId: 'IDFM:C01046',
-    lineRef: 'RATP:Line::C01046:LOC',
+    routeId: 'IDFM:C01087',
+    lineRef: 'à confirmer via PRIM',
+    shapeId: 'IDFM:shp_3_1053',
+    directionId: 0,
+    terminalStopId: 'IDFM:492185',
     route: [
-      [48.8442, 2.4341],
-      [48.8474, 2.4214],
-      [48.8478, 2.4102],
-      [48.8485, 2.3967],
-      [48.8549, 2.3852],
-      [48.8611, 2.3764],
-      [48.8674, 2.3638],
-      [48.8768, 2.3592],
+      [48.844097, 2.440368],
+      [48.840515, 2.435347],
+      [48.834618, 2.418704],
+      [48.835091, 2.408263],
+      [48.839188, 2.396657],
+      [48.847347, 2.386773],
+      [48.857639, 2.380206],
+      [48.862251, 2.376771],
+      [48.872639, 2.36984],
+      [48.878365, 2.370566],
+      [48.875801, 2.360263],
+      [48.875843, 2.358039],
     ],
     stops: [
-      { name: 'Château de Vincennes', lat: 48.8442, lon: 2.4341 },
-      { name: 'Porte de Vincennes', lat: 48.8478, lon: 2.4102 },
-      { name: 'Nation', lat: 48.8485, lon: 2.3967 },
-      { name: 'Voltaire', lat: 48.8611, lon: 2.3764 },
-      { name: 'République', lat: 48.8674, lon: 2.3638 },
-      { name: "Gare de l'Est", lat: 48.8768, lon: 2.3592 },
+      { name: 'Château de Vincennes', lat: 48.844146, lon: 2.440378 },
+      { name: 'Porte Dorée', lat: 48.835328, lon: 2.407844 },
+      { name: 'Daumesnil - Félix Éboué', lat: 48.839052, lon: 2.397107 },
+      { name: 'Reuilly - Diderot', lat: 48.847068, lon: 2.38708 },
+      { name: 'Voltaire - Léon Blum', lat: 48.858329, lon: 2.380228 },
+      { name: 'Goncourt', lat: 48.870323, lon: 2.370911 },
+      { name: 'Louis Blanc', lat: 48.880839, lon: 2.364702 },
+      { name: "Gare de l'Est", lat: 48.875759, lon: 2.358165 },
     ],
   },
   vehicles: [
     {
       id: 'demo-46-1',
-      lat: 48.8504,
-      lon: 2.3906,
+      lat: 48.847347,
+      lon: 2.386773,
       timestamp: '2026-05-19T05:55:00Z',
       direction: "Gare de l'Est",
-      nextStopName: 'Nation',
+      nextStopName: 'Reuilly - Diderot',
       delayMinutes: 1,
     },
     {
       id: 'demo-46-2',
-      lat: 48.8637,
-      lon: 2.3724,
+      lat: 48.862251,
+      lon: 2.376771,
       timestamp: '2026-05-19T05:55:08Z',
       direction: "Gare de l'Est",
-      nextStopName: 'République',
+      nextStopName: 'Parmentier - République',
       delayMinutes: 0,
     },
     {
       id: 'demo-46-3',
-      lat: 48.8715,
-      lon: 2.3613,
+      lat: 48.875801,
+      lon: 2.360263,
       timestamp: '2026-05-19T05:55:12Z',
       direction: "Gare de l'Est",
       nextStopName: "Gare de l'Est",
@@ -131,10 +175,10 @@ const demoFeed = {
 };
 
 const mapBounds = {
-  minLat: 48.839,
+  minLat: 48.832,
   maxLat: 48.883,
   minLon: 2.338,
-  maxLon: 2.439,
+  maxLon: 2.442,
   width: 800,
   height: 560,
   padding: 46,
@@ -145,6 +189,7 @@ const els = {
   identifiers: document.querySelector('#identifier-grid'),
   architecture: document.querySelector('#architecture-cards'),
   decisions: document.querySelector('#decisions'),
+  verifications: document.querySelector('#verification-list'),
   feedForm: document.querySelector('#feed-form'),
   feedInput: document.querySelector('#feed-url'),
   resetFeed: document.querySelector('#reset-feed'),
@@ -178,11 +223,22 @@ function renderStaticContent() {
           <td><strong>${candidate.name}</strong></td>
           <td>${candidate.live}</td>
           <td>${candidate.auth}</td>
+          <td>${candidate.cors}</td>
           <td>${candidate.frontend}</td>
           <td>${candidate.line46}</td>
           <td>${candidate.direction}</td>
           <td>${candidate.complexity}</td>
         </tr>`,
+    )
+    .join('');
+
+  els.verifications.innerHTML = verificationFindings
+    .map(
+      (item) => `
+        <div class="decision-item">
+          <strong>${item.title}</strong>
+          <p>${item.copy}</p>
+        </div>`,
     )
     .join('');
 
@@ -360,11 +416,11 @@ function normalizeFeed(payload) {
     line: {
       label: line.label || '46',
       direction: line.direction || "Gare de l'Est",
-      routeId: line.routeId || 'IDFM:C01046',
-      lineRef: line.lineRef || 'RATP:Line::C01046:LOC',
-      route: Array.isArray(line.route) ? line.route : demoFeed.line.route,
-      stops: Array.isArray(line.stops) ? line.stops : demoFeed.line.stops,
-    },
+        routeId: line.routeId || 'IDFM:C01087',
+        lineRef: line.lineRef || 'à confirmer via PRIM',
+        route: Array.isArray(line.route) ? line.route : demoFeed.line.route,
+        stops: Array.isArray(line.stops) ? line.stops : demoFeed.line.stops,
+      },
     vehicles: vehicles
       .filter((vehicle) => Number.isFinite(vehicle.lat) && Number.isFinite(vehicle.lon))
       .map((vehicle) => ({
